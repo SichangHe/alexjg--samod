@@ -43,6 +43,7 @@ pub struct RepoBuilder<S, R, A> {
     pub(crate) peer_id: Option<PeerId>,
     pub(crate) concurrency: ConcurrencyConfig,
     pub(crate) observer: Option<Arc<dyn RepoObserver>>,
+    pub(crate) sync_timeout: Option<std::time::Duration>,
 }
 
 impl<S, R, A> RepoBuilder<S, R, A> {
@@ -54,6 +55,7 @@ impl<S, R, A> RepoBuilder<S, R, A> {
             share_policy: self.share_policy,
             concurrency: self.concurrency,
             observer: self.observer,
+            sync_timeout: self.sync_timeout,
         }
     }
 
@@ -65,6 +67,7 @@ impl<S, R, A> RepoBuilder<S, R, A> {
             share_policy: self.share_policy,
             concurrency: self.concurrency,
             observer: self.observer,
+            sync_timeout: self.sync_timeout,
         }
     }
 
@@ -83,6 +86,7 @@ impl<S, R, A> RepoBuilder<S, R, A> {
             share_policy,
             concurrency: self.concurrency,
             observer: self.observer,
+            sync_timeout: self.sync_timeout,
         }
     }
 
@@ -92,6 +96,14 @@ impl<S, R, A> RepoBuilder<S, R, A> {
     /// documentation
     pub fn with_concurrency(mut self, concurrency: ConcurrencyConfig) -> Self {
         self.concurrency = concurrency;
+        self
+    }
+
+    /// If no reply arrives for about this long, reset the per-connection sync
+    /// bookkeeping and generate again (`automerge::sync::State::on_timeout`).
+    /// Rounded up to 100 ms ticks. Default: off.
+    pub fn with_sync_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.sync_timeout = Some(timeout);
         self
     }
 
@@ -111,6 +123,7 @@ impl<R> RepoBuilder<InMemoryStorage, R, ShareConfig> {
             share_policy: ShareConfig::default(),
             concurrency: ConcurrencyConfig::AsyncRuntime,
             observer: None,
+            sync_timeout: None,
         }
     }
 }

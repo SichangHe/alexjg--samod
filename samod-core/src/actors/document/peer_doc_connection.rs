@@ -73,6 +73,10 @@ impl PeerDocConnection {
         }
     }
 
+    pub(super) fn on_sync_timeout(&mut self) {
+        self.sync_state.on_timeout();
+    }
+
     pub(super) fn mark_requested(&mut self) {
         if !self.has_requested {
             self.has_requested = true;

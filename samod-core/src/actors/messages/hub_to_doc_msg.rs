@@ -16,6 +16,10 @@ impl HubToDocMsg {
 
 #[derive(Debug, Clone)]
 pub(crate) enum HubToDocMsgPayload {
+    /// A reply from every peer is overdue: reset per-connection sync bookkeeping
+    /// (`State::on_timeout`) and generate again.
+    SyncTimeout,
+
     /// Request the actor to terminate gracefully.
     Terminate,
 

@@ -5,3 +5,6 @@ members = [ "samod","samod-core", "samod-test-harness"]
 
 [workspace.dependencies]
 automerge = "0.12.0"
+
+[patch.crates-io]
+automerge = { path = "../automerge--automerge/rust/automerge" }

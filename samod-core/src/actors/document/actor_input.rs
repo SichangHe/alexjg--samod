@@ -33,6 +33,7 @@ pub(crate) enum ActorInput {
     },
     IoComplete(IoResult<DocumentIoResult>),
     Tick,
+    SyncTimeout,
 }
 
 /// Convert external messages to internal input messages
@@ -40,6 +41,7 @@ impl From<HubToDocMsgPayload> for ActorInput {
     fn from(message: HubToDocMsgPayload) -> Self {
         match message {
             HubToDocMsgPayload::Terminate => ActorInput::Terminate,
+            HubToDocMsgPayload::SyncTimeout => ActorInput::SyncTimeout,
             HubToDocMsgPayload::UpdateSharePolicy { peer_id, config } => {
                 ActorInput::UpdateSharePolicy { peer_id, config }
             }

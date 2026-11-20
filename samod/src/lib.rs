@@ -524,8 +524,10 @@ impl Repo {
             share_policy,
             concurrency,
             observer,
+            sync_timeout,
         } = builder;
-        let task_setup = TaskSetup::new(storage.clone(), peer_id, concurrency, observer).await;
+        let task_setup =
+            TaskSetup::new(storage.clone(), peer_id, concurrency, observer, sync_timeout).await;
         let inner = task_setup.inner.clone();
         task_setup.spawn_tasks(runtime, storage, share_policy);
         Self { inner }
@@ -546,8 +548,10 @@ impl Repo {
             share_policy,
             concurrency,
             observer,
+            sync_timeout,
         } = builder;
-        let task_setup = TaskSetup::new(storage.clone(), peer_id, concurrency, observer).await;
+        let task_setup =
+            TaskSetup::new(storage.clone(), peer_id, concurrency, observer, sync_timeout).await;
         let inner = task_setup.inner.clone();
         task_setup.spawn_tasks_local(runtime, storage, share_policy);
         Self { inner }
@@ -1402,10 +1406,12 @@ impl TaskSetup {
         peer_id: Option<PeerId>,
         concurrency: ConcurrencyConfig,
         observer: Option<Arc<dyn observer::RepoObserver>>,
+        sync_timeout: Option<std::time::Duration>,
     ) -> TaskSetup {
         let mut rng = rand::rngs::StdRng::from_rng(&mut rand::rng());
         let peer_id = peer_id.unwrap_or_else(|| PeerId::new_with_rng(&mut rng));
-        let hub = load_hub(storage.clone(), Hub::load(peer_id.clone())).await;
+        let mut hub = load_hub(storage.clone(), Hub::load(peer_id.clone())).await;
+        hub.set_sync_timeout_ticks(sync_timeout.map(|d| (d.as_millis() as u32).div_ceil(100).max(1)));
 
         let (tx_storage, rx_storage) = unbounded::channel();
         let tx_io_for_tick = tx_storage.clone();

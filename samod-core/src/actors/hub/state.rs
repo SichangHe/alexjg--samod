@@ -63,6 +63,10 @@ pub(crate) struct State {
     listeners: HashMap<ListenerId, ListenerState>,
 
     searches: Searches,
+
+    /// Fire a sync timeout every this many ticks (100 ms each). None = never.
+    pub(crate) sync_timeout_ticks: Option<u32>,
+    ticks_since_sync_timeout: u32,
 }
 
 impl State {
@@ -83,6 +87,8 @@ impl State {
             dialers: HashMap::new(),
             listeners: HashMap::new(),
             searches: Searches::new(),
+            sync_timeout_ticks: None,
+            ticks_since_sync_timeout: 0,
         }
     }
 
@@ -1268,6 +1274,18 @@ impl State {
         now: UnixTimestamp,
         results: &mut HubResults,
     ) {
+        if let Some(n) = self.sync_timeout_ticks {
+            self.ticks_since_sync_timeout += 1;
+            if self.ticks_since_sync_timeout >= n {
+                self.ticks_since_sync_timeout = 0;
+                if self.run_state == RunState::Running {
+                    for actor_id in self.actors.keys() {
+                        results.send_to_doc_actor(*actor_id, HubToDocMsgPayload::SyncTimeout);
+                    }
+                }
+            }
+        }
+
         // Check all dialers for expired retry timers
         let mut need_dial = Vec::new();
         for (dialer_id, dialer) in &mut self.dialers {

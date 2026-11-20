@@ -82,6 +82,12 @@ impl Hub {
     /// connected to. Multiple peers may share the same storage ID when they're
     /// connected to the same underlying storage (e.g., browser tabs sharing
     /// IndexedDB, processes sharing filesystem storage).
+    /// Fire a per-connection sync timeout (`automerge::sync::State::on_timeout`)
+    /// every `ticks` hub ticks (100 ms each). `None` disables it (default).
+    pub fn set_sync_timeout_ticks(&mut self, ticks: Option<u32>) {
+        self.state.sync_timeout_ticks = ticks;
+    }
+
     pub fn storage_id(&self) -> StorageId {
         self.state.storage_id()
     }

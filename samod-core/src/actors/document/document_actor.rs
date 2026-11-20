@@ -408,6 +408,11 @@ impl DocumentActor {
                 }
             }
             ActorInput::Tick => {}
+            ActorInput::SyncTimeout => {
+                for conn in self.peer_connections.values_mut() {
+                    conn.on_sync_timeout();
+                }
+            }
         }
         self.step(now, out);
     }
